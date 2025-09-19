@@ -1,19 +1,27 @@
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+#from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 import gradio as gr
+import os
 
 # import the .env file
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(dotenv_path="env/.env")
 
 # configuration
 DATA_PATH = r"data"
 CHROMA_PATH = r"chroma_db"
 
-embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large")
+# Gemini's embedding model
+embeddings_model = GoogleGenerativeAIEmbeddings(
+    model="models/embedding-001",   # Gemini embedding model
+    google_api_key=os.getenv("GOOGLE_API_KEY")
+)
+#embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large")
 
 # initiate the model
-llm = ChatOpenAI(temperature=0.5, model='gpt-4o-mini')
+#llm = ChatOpenAI(temperature=0.5, model='gpt-4o-mini')
+llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.5)
 
 # connect to the chromadb
 vector_store = Chroma(
@@ -46,7 +54,7 @@ def stream_response(message, history):
         partial_message = ""
 
         rag_prompt = f"""
-        You are an assistent which answers questions based on knowledge which is provided to you.
+        You are an assistant which answers questions based on knowledge which is provided to you.
         While answering, you don't use your internal knowledge, 
         but solely the information in the "The knowledge" section.
         You don't mention anything to the user about the povided knowledge.
@@ -67,7 +75,9 @@ def stream_response(message, history):
             yield partial_message
 
 # initiate the Gradio app
-chatbot = gr.ChatInterface(stream_response, textbox=gr.Textbox(placeholder="Send to the LLM...",
+chatbot = gr.ChatInterface(
+    stream_response, 
+    textbox=gr.Textbox(placeholder="Send to the LLM...",
     container=False,
     autoscroll=True,
     scale=7),
