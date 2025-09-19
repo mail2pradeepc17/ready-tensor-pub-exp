@@ -1,0 +1,10 @@
+langchain>=0.3.23
+langchain-community>=0.3.29
+langchain-chroma>=0.2.6
+langchain-openai>=0.3.33
+langchain-text-splitters>=0.3.8
+langchain-core>=0.3.56
+python-dotenv>=1.1.1
+pypdf>=5.4.0
+gradio>=5.25.1
+gradio>=5.2
