@@ -36,4 +36,9 @@ python src\ingest_database.py
 
 # run chatbot.py to chat against the content of PDF file
 python src\chatbot.py
+
+# Questions that could be asked from PDF file
+1. How Can I Add a Memory to My RAG or AI Agent?
+2. What is the advantage of using Proper environment and dependency management?
+
 ```
