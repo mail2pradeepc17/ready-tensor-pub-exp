@@ -15,7 +15,7 @@ CHROMA_PATH = r"chroma_db"
 embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large"),
 
 # initiate vectore store
-vectore_store = Chroma(
+vector_store = Chroma(
         collection_name="example_collection",
         embedding_function= embeddings_model,
         persist_directory=CHROMA_PATH,
@@ -42,8 +42,3 @@ uuids = [str(uuid4()) for _ in range(len(chunks))]
 
 # adding chunks to vector store
 vector_store.add_documents(documents=chunks, ids=uuids)
-
-
-
-
-
