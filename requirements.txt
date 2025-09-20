@@ -9,3 +9,4 @@ python-dotenv>=1.1.1
 pypdf>=5.4.0
 gradio>=5.25.1
 gradio>=5.2
+grpcio>=1.60.1

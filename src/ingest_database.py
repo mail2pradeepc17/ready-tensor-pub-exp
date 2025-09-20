@@ -1,52 +1,46 @@
-from langchain_community.document_loaders import PyPDFDirectoryLoader
+import os
+from dotenv import load_dotenv
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-#from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
-from uuid import uuid4
-import os
 
-# import the .env file
-from dotenv import load_dotenv
-load_dotenv(dotenv_path="env/.env")
+def main():
+    # ---- Load environment variables ----
+    DATA_PATH = r"./data/data.pdf"
+    CHROMA_PATH = r"chroma_db"
+    load_dotenv(dotenv_path="env/.env")
 
-# configuration
-DATA_PATH = r"data"
-CHROMA_PATH = r"chroma_db"
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+    if not google_api_key:
+        raise ValueError("❌ GOOGLE_API_KEY not found. Please set it in your .env file.")
 
-# initiate the embeddings model
-# embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large")
+    # ---- Load PDFs ----
+    loader = PyPDFLoader(DATA_PATH)  # just the folder path, no extra args
+    docs = loader.load()
 
-# Gemini's embedding model
-embeddings_model = GoogleGenerativeAIEmbeddings(
-    model="models/embedding-001",   # Gemini embedding model
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
+    # ---- Split into chunks ----
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=8000, 
+        chunk_overlap=800, 
+        separators=["\n\n", "\n", " ", ""])
+    chunks = text_splitter.split_documents(docs)
 
-# initiate the vector store
-vector_store = Chroma(
-    collection_name="example_collection",
-    embedding_function=embeddings_model,
-    persist_directory=CHROMA_PATH,
-)
+    # ---- Gemini Embeddings ----
+    embeddings = GoogleGenerativeAIEmbeddings(
+                model="models/embedding-001",
+                google_api_key=google_api_key)
 
-# loading the PDF document
-loader = PyPDFDirectoryLoader(DATA_PATH)
-raw_documents = loader.load()
+    # ---- Create & persist Chroma DB ----
+    persist_dir = CHROMA_PATH
+    vectordb = Chroma.from_documents(   # from session state
+                documents=chunks,
+                embedding=embeddings,
+                persist_directory=persist_dir)
 
-# splitting the document
-text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=300,
-    chunk_overlap=100,
-    length_function=len,
-    is_separator_regex=False,
-)
+    # Check vector dB contents
+    print("✅ Total documents in Chroma:", vectordb._collection.count())
+    print(f"✅ Vector database created at '{persist_dir}'")
 
-# creating the chunks
-chunks = text_splitter.split_documents(raw_documents)
-
-# creating unique ID's
-uuids = [str(uuid4()) for _ in range(len(chunks))]
-
-# adding chunks to vector store
-vector_store.add_documents(documents=chunks, ids=uuids)
+if __name__ == "__main__":
+    main()

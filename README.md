@@ -38,7 +38,8 @@ python src\ingest_database.py
 python src\chatbot.py
 
 # Questions that could be asked from PDF file
-1. How Can I Add a Memory to My RAG or AI Agent?
-2. What is the advantage of using Proper environment and dependency management?
+1. In 2 words: what was built in last 5 months?
+2. How Can I Add a Memory to My RAG or AI Agent?
+3. What is the advantage of using Proper environment and dependency management?
 
 ```

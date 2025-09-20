@@ -1,8 +1,7 @@
-#from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
-from langchain_chroma import Chroma
-import gradio as gr
 import os
+import gradio as gr
+from langchain_chroma import Chroma
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
 # import the .env file
 from dotenv import load_dotenv
@@ -17,21 +16,19 @@ embeddings_model = GoogleGenerativeAIEmbeddings(
     model="models/embedding-001",   # Gemini embedding model
     google_api_key=os.getenv("GOOGLE_API_KEY")
 )
-#embeddings_model = OpenAIEmbeddings(model="text-embedding-3-large")
 
 # initiate the model
-#llm = ChatOpenAI(temperature=0.5, model='gpt-4o-mini')
-llm = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.5)
+llm = ChatGoogleGenerativeAI(model=os.getenv("GOOGLE_AI_MODEL"), temperature=0.5)
 
 # connect to the chromadb
 vector_store = Chroma(
-    collection_name="example_collection",
+    collection_name="knowledge",
     embedding_function=embeddings_model,
     persist_directory=CHROMA_PATH, 
 )
 
 # Set up the vectorstore to be the retriever
-num_results = 5
+num_results = 3
 retriever = vector_store.as_retriever(search_kwargs={'k': num_results})
 
 # call this function for every message added to the chatbot
@@ -46,7 +43,6 @@ def stream_response(message, history):
 
     for doc in docs:
         knowledge += doc.page_content+"\n\n"
-
 
     # make the call to the LLM (including prompt)
     if message is not None:
@@ -77,7 +73,7 @@ def stream_response(message, history):
 # initiate the Gradio app
 chatbot = gr.ChatInterface(
     stream_response, 
-    textbox=gr.Textbox(placeholder="Send to the LLM...",
+    textbox=gr.Textbox(placeholder="✅ Send to the LLM...",
     container=False,
     autoscroll=True,
     scale=7),
